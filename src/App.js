@@ -11,7 +11,14 @@ function App() {
 	const [screen, setScreen] = useState('home')
 
 	const { address } = useAccount()
+	const { data: signer } = useSigner()
+	const contract = useContract({
+		address: CONTRACT_ADDRESS,
+		abi: CONTRACT_ABI,
+		signer
+	})
 
+	console.log(contract)
 
 	const RenderScreen = () => {
 		return (
