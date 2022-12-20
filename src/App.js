@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useContract, useSigner } from 'wagmi'
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./CONTRACT";
@@ -15,19 +15,57 @@ function App() {
 	const contract = useContract({
 		address: CONTRACT_ADDRESS,
 		abi: CONTRACT_ABI,
-		signer
+		signerOrProvider: signer
 	})
 
 	console.log(contract)
+
+	// useEffect(() => {
+	// 	if (contract) {
+	// 		const getCandidateCount = async () => {
+	// 			const count = await contract.candidateCount()
+	// 			console.log("Candidate Count ", count.toString())
+	// 		}
+	// 		const getTotalVotes = async () => {
+	// 			const count = await contract.totalVotes()
+	// 			console.log("Total Votes ", count.toString())
+	// 		}
+	// 		getCandidateCount()
+	// 		getTotalVotes()
+	// 	}
+	// }, [contract])
+
+	const addCandidate = async(name, party, imageUri) => {
+		console.log(name, party, imageUri)
+		try {
+			const tx = await contract.addCandidate(name, party, imageUri)
+			await tx.wait()
+			console.log(tx)
+			console.log("Candidate Added")
+		} catch(err) {
+			console.log(err)
+		}
+	}
+
+	const vote = async(candidateId) => {
+		try {
+			const tx = await contract.vote(candidateId)
+			await tx.wait()
+			console.log(tx)
+			console.log("Voted")
+		} catch(err) {
+			console.log(err)
+		}
+	}
 
 	const RenderScreen = () => {
 		return (
 			<div className="flex flex-col gap-4 items-center justify-center min-h-screen">
 				{
 					screen === 'addCandidate' ? (
-						<AddCandidate setScreen={setScreen} />
+						<AddCandidate setScreen={setScreen} addCandidate={addCandidate} />
 					) : (
-						<Voting setScreen={setScreen} />
+						<Voting setScreen={setScreen} vote={vote} />
 					)
 				}
 			</div>
