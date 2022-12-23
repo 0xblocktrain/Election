@@ -9,6 +9,8 @@ import Voting from "./Components/Voting";
 function App() {
 
 	const [screen, setScreen] = useState('home')
+	const [candidates, setCandidates] = useState([])
+	const [totalVotes, setTotalVotes] = useState(0)
 
 	const { address } = useAccount()
 	const { data: signer } = useSigner()
@@ -18,7 +20,7 @@ function App() {
 		signerOrProvider: signer
 	})
 
-	console.log(contract)
+	// console.log(contract)
 
 	// useEffect(() => {
 	// 	if (contract) {
@@ -58,6 +60,46 @@ function App() {
 		}
 	}
 
+	const getCandidates = async() => {
+		try {
+			const count = await contract.candidateCount()
+			console.log("Candidate Count ", count.toString())
+			let candidatesArr = []
+			for(let i = 1; i <= count; i++) {
+				const candidate = await contract.candidates(i)
+				console.log(candidate)
+				let candidate_obj = {
+					name: candidate[0],
+					party: candidate[1],
+					imageUri: candidate[2],
+				}
+				candidatesArr.push(candidate_obj)
+			}
+			setCandidates(candidatesArr)
+		} catch(err) {
+			console.log(err)
+		}
+	}
+
+	const getTotalVotes = async() => {
+		try {
+			const count = await contract.totalVotes()
+			console.log("Total Votes ", count.toString())
+			setTotalVotes(count.toString())
+		} catch(err) {
+			console.log(err)
+		}
+	}
+
+	useEffect(() => {
+		if(contract) {
+			getCandidates()
+			getTotalVotes()
+		}
+    }, [contract])
+
+	// console.log(candidates)
+
 	const RenderScreen = () => {
 		return (
 			<div className="flex flex-col gap-4 items-center justify-center min-h-screen">
@@ -65,7 +107,7 @@ function App() {
 					screen === 'addCandidate' ? (
 						<AddCandidate setScreen={setScreen} addCandidate={addCandidate} />
 					) : (
-						<Voting setScreen={setScreen} vote={vote} />
+						<Voting setScreen={setScreen} vote={vote} candidates={candidates} />
 					)
 				}
 			</div>
